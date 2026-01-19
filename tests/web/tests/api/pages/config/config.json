@@ -1,0 +1,10 @@
+{
+  "tenants": {
+    "company1": "https://company1.workflowpro.com",
+    "company2": "https://company2.workflowpro.com"
+  },
+  "users": {
+    "admin": "admin@company1.com"
+  },
+  "browser": "chrome"
+}
