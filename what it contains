@@ -1,0 +1,7 @@
+
+Test Plan	docs/Framework_Design.md → includes framework design, configuration management, assumptions, missing requirements questions
+Automated Test Scripts	tests/web/test_login.py and tests/api/test_users.py → placeholder test scripts showing structure
+Test Data	config/config.json (environments, tenants, browsers) and optionally a data/ folder with JSON/CSV test data
+README with Setup Instructions	README.md → explains folder structure, framework overview, dependencies (requirements.txt)
+Test Execution Reports	For submission purposes, you can mention reporting strategy in docs/Framework_Design.md or API_UI_Integration_Test.md. You don’t need actual reports if you haven’t run the tests.
+Documentation of Testing Approach	docs/API_UI_Integration_Test.md → contains integration test scenario, pseudo-code, reasoning, and tool choices
