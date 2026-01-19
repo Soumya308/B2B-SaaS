@@ -1,0 +1,80 @@
+Fixed version of code(test user login)
+import pytest
+from playwright.sync_api import sync_playwright, expect
+
+def test_user_login():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context()
+        page = context.new_page()
+
+        page.goto("https://app.workflowpro.com/login")
+
+        page.fill("#email", "admin@company1.com")
+        page.fill("#password", "password123")
+        page.click("#login-btn")
+
+        # Wait for navigation to dashboard
+        page.wait_for_url("**/dashboard", timeout=10000)
+
+        # Wait for dashboard to load completely
+        welcome_message = page.locator(".welcome-message")
+        expect(welcome_message).to_be_visible(timeout=10000)
+
+        browser.close()
+
+Flakiness issue:
+The flakiness was caused by missing waits, strict URL checks, and ignoring dynamic loading.
+I fixed it by adding explicit waits, URL pattern matching, stable element assertions, and handling slower CI environments
+
+Root Cause of Flaky Tests 
+The test was failing randomly because it was running faster than the application.
+After clicking the login button, the app needs time to load the dashboard and tenant data, but the test checked the URL and elements immediately, without waiting.
+This issue shows up more in CI because:
+CI machines are slower than local systems
+The app loads data dynamically
+Some users may go through 2FA
+Different tenants take different time to load.
+
+Fixed multi-tenant access:
+def test_multi_tenant_access():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context()
+        page = context.new_page()
+
+        try:
+            page.goto("https://app.workflowpro.com/login", timeout=10000)
+
+            page.fill("#email", "user@company2.com")
+            page.fill("#password", "password123")
+            page.click("#login-btn")
+
+            # Confirm login success
+            page.wait_for_url("**/dashboard", timeout=10000)
+
+            # Wait for tenant-specific data to load
+            page.wait_for_selector(".project-card", timeout=10000)
+
+            projects = page.locator(".project-card")
+            expect(projects.first).to_be_visible()
+
+            count = projects.count()
+            assert count > 0
+
+            # Validate tenant isolation
+            for i in range(count):
+                project_text = projects.nth(i).text_content()
+                assert "Company2" in project_text
+
+        finally:
+            browser.close()
+
+Root Causes :
+Dynamic dashboard loading: Added explicit waits so elements are only checked after they appear.
+2FA login: Used test accounts without 2FA and documented this exception.
+Different tenant loading times: Increased timeouts and waited for tenant data to fully render.
+CI/browser differences: Headless mode and flexible assertions ensure stability across environments.
+General flakiness: Avoided strict URL checks and added proper error handling.
+
+
